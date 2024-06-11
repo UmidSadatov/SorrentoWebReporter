@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+
+{% block content %}
+
+    <div class="auth_container">
+        
+        <h1>Вход в систему</h1>
+    
+        <form action="/" method="post">
+            <input class="auth_login" type="text" placeholder="Логин" name="user" {% if auth_error %}style="border: solid 1px red;"{% endif %}>
+            <input class="auth_pass" type="password" placeholder="Пароль" name="password" {% if auth_error %}style="border: solid 1px red;"{% endif %}>
+            <button type="submit">Вход</button>
+        </form>
+
+        <p class="auth_error">
+            {% if auth_error %}
+                Неверный логин или пароль!
+            {% endif %}
+        </p>
+
+    </div>
+
+
+{% endblock %}

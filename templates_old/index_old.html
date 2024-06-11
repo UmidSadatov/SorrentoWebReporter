@@ -1,0 +1,23 @@
+{% extends "base_old.html" %}
+
+{% block title %} Sorrento Reporter {% endblock %}
+
+{% block content %}
+    <div class="container">
+        <h1>Тип отчета</h1>
+        <div class="button-container">
+            <a href="/primary">
+                <button class="report-button">
+                    <i class="fas fa-file-alt"></i>
+                    <span>Первичный отчет</span>
+                </button>
+            </a>
+            <a href="/secondary">
+                <button class="report-button">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Вторичный отчет</span>
+                </button>
+            </a>
+        </div>
+    </div>
+{% endblock %}

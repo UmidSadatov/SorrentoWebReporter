@@ -1,0 +1,131 @@
+{% extends "base_old.html" %}
+
+{% block title %}Вторичный отчет{% endblock %}
+
+{% block content %}
+<div id="form-container">
+    <h2>Загрузить файлы</h2>
+    <form id="file-form" method="post" action="/process_files" enctype="multipart/form-data">
+        <div id="file-input-groups">
+            {% for file_data in session['secondary_file_datas'] %}
+                <div class="file-input-group">
+                    <button type="button" class="remove-button" onclick="removeFileInput(this)">-</button>
+                    <!-- dist -->
+                    <div class="form-row">
+                        <label for="distributor">Дистрибьютор:</label>
+                        <select name="distributor" required>
+                            {% for dist in distributors %}
+                                <option value="{{ dist }}" {% if dist == file_data['dist'] %}selected{% endif %}>
+                                    {{ dist }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- name -->
+                    <div class="form-row">
+                        <label for="name_template">Шаблон для наименований:</label>
+                        <input type="text" name="name_template" placeholder="Введите шаблон" required>
+                    </div>
+
+                    <!-- region1 -->
+                    <div class="form-row">
+                        <label for="region1_template">Шаблон для региона 1:</label>
+                        <input type="text" name="region1_template" placeholder="Введите шаблон" required>
+                    </div>
+
+                    <!-- region2 -->
+                    <div class="form-row">
+                        <label for="region2_template">Шаблон для региона 2:</label>
+                        <input type="text" name="region2_template" placeholder="Введите шаблон">
+                    </div>
+
+                    <!-- sales -->
+                    <div class="form-row">
+                        <label for="sales_template">Шаблон для количества продаж:</label>
+                        <input type="text" name="sales_template" placeholder="Введите шаблон" required>
+                    </div>
+
+                    <!-- clients -->
+                    <div class="form-row">
+                        <label for="client_template">Шаблон для покупателя:</label>
+                        <input type="text" name="client_template" placeholder="Введите шаблон">
+                    </div>
+
+                    <!-- file -->
+                    <div class="form-row">
+                        <label for="file">Файл:</label>
+                        <input type="file" name="file" accept=".xlsx, .xls, .XLSX" required>
+                    </div>
+
+                    <!-- page -->
+                    <div class="form-row">
+                        <label for="client_template">Страница:</label>
+                        <input type="text" name="sheet_index" value="0" placeholder="Введите номер страницы (от нуля)" required>
+                    </div>
+
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="inline-items">
+            <button type="button" class="add-button" onclick="addFileInput()">+</button>
+            <button type="submit" class="process-button">Обработать</button>
+        </div>
+    </form>
+</div>
+
+<script>
+    function addFileInput() {
+        const fileForm = document.getElementById('file-input-groups');
+        const fileInputGroup = document.createElement('div');
+        fileInputGroup.className = 'file-input-group';
+
+        fileInputGroup.innerHTML = `
+            <button type="button" class="remove-button" onclick="removeFileInput(this)">-</button>
+            <div class="form-row">
+                <label for="distributor">Дистрибьютор:</label>
+                <select name="distributor" required>
+                    {% for dist in distributors %}
+                        <option value="{{ dist }}">{{ dist }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-row">
+                <label for="name_template">Шаблон для наименований:</label>
+                <input type="text" name="name_template" placeholder="Введите шаблон" required>
+            </div>
+            <div class="form-row">
+                <label for="region1_template">Шаблон для региона 1:</label>
+                <input type="text" name="region1_template" placeholder="Введите шаблон" required>
+            </div>
+            <div class="form-row">
+                <label for="region2_template">Шаблон для региона 2:</label>
+                <input type="text" name="region2_template" placeholder="Введите шаблон">
+            </div>
+            <div class="form-row">
+                <label for="sales_template">Шаблон для количества продаж:</label>
+                <input type="text" name="sales_template" placeholder="Введите шаблон" required>
+            </div>
+            <div class="form-row">
+                <label for="client_template">Шаблон для покупателя:</label>
+                <input type="text" name="client_template" placeholder="Введите шаблон">
+            </div>
+            <div class="form-row">
+                <label for="file">Файл:</label>
+                <input type="file" name="file" accept=".xlsx, .xls, .XLSX" required>
+            </div>
+            <div class="form-row">
+                <label for="client_template">Страница:</label>
+                <input type="text" name="sheet_index" value="0" placeholder="Введите номер страницы (от нуля)">
+            </div>
+        `;
+
+        fileForm.appendChild(fileInputGroup);
+    }
+
+    function removeFileInput(button) {
+        button.parentElement.remove();
+    }
+</script>
+{% endblock %}
