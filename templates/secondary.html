@@ -3,7 +3,7 @@
 
 {% block content %}
 
-    <form class="secondary_input">
+    <form class="secondary_input" action="/secondary_processing" method="post" enctype="multipart/form-data">
         
         <h3>Ввод данных</h3>
     
@@ -13,75 +13,77 @@
 
                 <div id="files_input">
 
-                    <div class="file-input-group">
-                        <div class="form_part">
-    
-                            <!-- dist -->
-                            <div class="form-row">
-                                <label for="distributor">* Дистрибьютор:</label>
-                                <select name="distributor" required>
-                                    <option value="" selected disabled hidden>Выберите дистрибьютора</option>
-                                    {% for dist in distributors %}
-                                        <option value="{{ dist }}">
-                                            {{ dist }}
-                                        </option>
-                                    {% endfor %}
-                                </select>
+                    {% for file_input_group in session['secondary_file_input_groups'] %}
+                        <div class="file-input-group" {% if file_input_group['input_error'] %}style="border: solid 5px #f00;"{% endif %}>
+                            <div class="form_part">
+        
+                                <!-- dist -->
+                                <div class="form-row">
+                                    <label for="distributor">* Дистрибьютор:</label>
+                                    <select name="distributor" required>
+                                        <option value="" selected disabled hidden>Выберите дистрибьютора</option>
+                                        {% for dist in distributors %}
+                                            <option value="{{ dist }}" {% if file_input_group['dist']==dist %}selected{% endif %}>
+                                                {{ dist }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                
+                                <!-- name -->
+                                <div class="form-row">
+                                    <label for="name_template">* Шаблон для наименований:</label>
+                                    <input value="{{ file_input_group['name_cells_template'] }}" type="text" name="name_template" placeholder="Введите шаблон" required>
+                                </div>
+        
+                                <!-- region1 -->
+                                <div class="form-row">
+                                    <label for="region1_template">* Шаблон для региона 1:</label>
+                                    <input value="{{ file_input_group['region1_cells_template'] }}" type="text" name="region1_template" placeholder="Введите шаблон" required>
+                                </div>
+        
+                                <!-- region2 -->
+                                <div class="form-row">
+                                    <label for="region2_template">Шаблон для региона 2:</label>
+                                    <input value="{{ file_input_group['region2_cells_template'] }}" type="text" name="region2_template" placeholder="Введите шаблон">
+                                </div>
+        
+                                <!-- sales -->
+                                <div class="form-row">
+                                    <label for="sales_template">* Шаблон для количества продаж:</label>
+                                    <input value="{{ file_input_group['sales_cells_template'] }}" type="text" name="sales_template" placeholder="Введите шаблон" required>
+                                </div>
+        
+                                <!-- clients -->
+                                <div class="form-row">
+                                    <label for="client_template">Шаблон для покупателя:</label>
+                                    <input value="{{ file_input_group['client_cells_template'] }}" type="text" name="client_template" placeholder="Введите шаблон">
+                                </div>
+        
+                                <!-- file -->
+                                <div class="form-row">
+                                    <label for="file">* Файл:</label>
+                                    <input class="file_input" type="file" name="file" accept=".xlsx, .xls, .XLSX" required onchange="fileChanged(this)">
+                                    <div class="file_input_btn_div" onclick="fileInputClick(this)">Выбрать файл</div>
+                                    <span class="file_name_span">Файл не выбран</span>
+                                </div>
+        
+                                <!-- page -->
+                                <div class="form-row">
+                                    <label for="client_template">* Страница:</label>
+                                    <input value="{{ file_input_group['sheet_index'] }}" type="text" name="sheet_index" value="0" placeholder="Введите номер страницы (от нуля)" required>
+                                </div>
+                                
                             </div>
-                            
-                            <!-- name -->
-                            <div class="form-row">
-                                <label for="name_template">* Шаблон для наименований:</label>
-                                <input type="text" name="name_template" placeholder="Введите шаблон" required>
+                            <div class="remove_btn">
+                                <button type="button" class="remove_form_group_button" onclick="removeFileInputGroup(this)">
+                                    <svg xmlns="http://www.w3.org/2000/svg" height="25px" viewBox="0 -960 960 960" width="25px" fill="#fff">
+                                        <path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/>
+                                    </svg>
+                                </button>
                             </div>
-    
-                            <!-- region1 -->
-                            <div class="form-row">
-                                <label for="region1_template">* Шаблон для региона 1:</label>
-                                <input type="text" name="region1_template" placeholder="Введите шаблон" required>
-                            </div>
-    
-                            <!-- region2 -->
-                            <div class="form-row">
-                                <label for="region2_template">Шаблон для региона 2:</label>
-                                <input type="text" name="region2_template" placeholder="Введите шаблон">
-                            </div>
-    
-                            <!-- sales -->
-                            <div class="form-row">
-                                <label for="sales_template">* Шаблон для количества продаж:</label>
-                                <input type="text" name="sales_template" placeholder="Введите шаблон" required>
-                            </div>
-    
-                            <!-- clients -->
-                            <div class="form-row">
-                                <label for="client_template">Шаблон для покупателя:</label>
-                                <input type="text" name="client_template" placeholder="Введите шаблон">
-                            </div>
-    
-                            <!-- file -->
-                            <div class="form-row">
-                                <label for="file">* Файл:</label>
-                                <input class="file_input" type="file" name="file" accept=".xlsx, .xls, .XLSX" required onchange="fileChanged(this)">
-                                <div class="file_input_btn_div" onclick="fileInputClick(this)">Выбрать файл</div>
-                                <span class="file_name_span">Файл не выбран</span>
-                            </div>
-    
-                            <!-- page -->
-                            <div class="form-row">
-                                <label for="client_template">* Страница:</label>
-                                <input type="text" name="sheet_index" value="0" placeholder="Введите номер страницы (от нуля)" required>
-                            </div>
-                            
                         </div>
-                        <div class="remove_btn">
-                            <button type="button" class="remove_form_group_button" onclick="removeFileInputGroup(this)">
-                                <svg xmlns="http://www.w3.org/2000/svg" height="25px" viewBox="0 -960 960 960" width="25px" fill="#fff">
-                                    <path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/>
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
+                    {% endfor %}
 
                 </div>
 
@@ -96,70 +98,75 @@
 
                 <div id="staffs_input">
 
-                    <div class="staff-input-group">
-    
-                        <div class="form_part">
-    
-                            <div class="form_rows">
+                    
+                    {% for staff_data in session['secondary_staff_input_groups'] %}
+                        <div class="staff-input-group">
+        
+                            <div class="form_part">
+        
+                                <div class="form_rows">
 
-                                <div class="form-row">
-                                    <label for="staff">* ФИО</label>
-                                    <input type="text" name="staff" placeholder="Мед.представитель" required>
+                                    <div class="form-row">
+                                        <label for="staff">* ФИО</label>
+                                        <input value="{{ staff_data['staff'] }}" type="text" name="staff" placeholder="Мед.представитель" required>
+                                    </div>
+            
+                                    <div class="form-row">
+                                        <label for="group">* Группа</label>
+                                        <select name="group" required>
+                                            <option value="" selected disabled hidden>Выберите группу</option>
+                                            {% for group in groups %}
+                                                <option value="{{ group }}" {% if staff_data['group']==group %}selected{% endif %}>
+                                                    {{ group }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+
+                                    {% for staff_region in staff_data['regions'] %}
+                                        <div class="form-row select-region">
+                                            <label for="region">* Регион</label>
+                                            <select name="fg1_regions" required>
+                                                <option value="" selected disabled hidden>Выберите регион</option>
+                                                {% for region in regions %}
+                                                    <option value="{{ region }}" {% if staff_region==region %}selected{% endif %}>
+                                                        {{ region }}
+                                                    </option>
+                                                {% endfor %}
+                                            </select>
+                                            <button type="button" class="remove_region_btn" onclick="removeRegionInput(this)">
+                                                <svg xmlns="http://www.w3.org/2000/svg" height="12px" viewBox="0 -960 960 960" width="12px" fill="#fff">
+                                                    <path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"/>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    {% endfor %}
+        
                                 </div>
         
-                                <div class="form-row">
-                                    <label for="group">* Группа</label>
-                                    <select name="group" required>
-                                        <option value="" selected disabled hidden>Выберите группу</option>
-                                        {% for group in groups %}
-                                            <option value="{{ group }}">
-                                                {{ group }}
-                                            </option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
-        
-                                <div class="form-row">
-                                    <label for="region">* Регион</label>
-                                    <select name="region" required>
-                                        <option value="" selected disabled hidden>Выберите регион</option>
-                                        {% for region in regions %}
-                                            <option value="{{ region }}">
-                                                {{ region }}
-                                            </option>
-                                        {% endfor %}
-                                    </select>
-                                    <button type="button" class="remove_region_btn" onclick="removeRegionInput(this)">
-                                        <svg xmlns="http://www.w3.org/2000/svg" height="12px" viewBox="0 -960 960 960" width="12px" fill="#fff">
-                                            <path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"/>
-                                        </svg>
+                                <div class="add_region_btn">
+                                    <button type="button" onclick="addRegion(this)">
+                                        Добавить регион
                                     </button>
                                 </div>
-    
+
+                                <div class="save_checkbox">                                
+                                    <input type="checkbox" name="save_checkbox" value="save_checkbox_1" {% if staff_data['saved'] %}checked{% endif %}>
+                                    <label for="save_checkbox">Сохранить</label>
+                                </div>
+        
+        
                             </div>
-    
-                            <div class="add_region_btn">
-                                <button type="button" onclick="addRegion(this)">
-                                    Добавить регион
+        
+                            <div class="remove_btn">
+                                <button type="button" onclick="removeStaffInputGroup(this)">
+                                    <svg xmlns="http://www.w3.org/2000/svg" height="25px" viewBox="0 -960 960 960" width="25px" fill="#fff">
+                                        <path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/>
+                                    </svg>
                                 </button>
                             </div>
-
-                            <div class="save_checkbox">                                
-                                <input type="checkbox" name="save_checkbox" value="save" checked>
-                                <label for="save_checkbox">Сохранить</label>
-                            </div>
-    
-    
                         </div>
-    
-                        <div class="remove_btn">
-                            <button type="button" onclick="removeStaffInputGroup(this)">
-                                <svg xmlns="http://www.w3.org/2000/svg" height="25px" viewBox="0 -960 960 960" width="25px" fill="#fff">
-                                    <path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/>
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
+                    {% endfor %}
 
                 </div>
 
@@ -172,6 +179,8 @@
             </div>
     
         </div>
+
+        <div class="error">{{ session['error'] }}</div>
 
         <div class="submit_btn">
             <button type="submit">
@@ -193,6 +202,7 @@
                 closestFileInputGroup.remove();
             }
         }
+
 
         function fileInputClick(inputBtnDiv) {
             const closestFormRow = inputBtnDiv.parentElement;
@@ -300,13 +310,17 @@
             const parentFormPart = parentDiv.parentElement;
             const formRowS = parentFormPart.querySelector('.form_rows');
 
+            const selectRegionFormRow = formRowS.querySelector('.select-region');
+            const selectTag = selectRegionFormRow.querySelector('select');
+            const selectTagName = selectTag.name;
+
             const newRegionInputFormRow = document.createElement('div');
-            newRegionInputFormRow.className = 'form-row';
+            newRegionInputFormRow.className = 'form-row select-region';
 
             newRegionInputFormRow.innerHTML = 
             `
                 <label for="region">* Регион</label>
-                <select name="region" required>
+                <select name="${selectTagName}" required>
                     <option value="" selected disabled hidden>Выберите регион</option>
                     {% for region in regions %}    
                         <option value="{{ region }}">
@@ -336,7 +350,13 @@
             }
         }
 
+
         function addStaffInputGroup() {
+
+            staffsInput = document.getElementById("staffs_input");
+            StaffInputGroupsNumber = staffsInput.querySelectorAll('.staff-input-group').length;
+
+
             newStaffInputGroup = document.createElement('div');
             newStaffInputGroup.className = "staff-input-group";
 
@@ -362,9 +382,9 @@
                                     </select>
                                 </div>
         
-                                <div class="form-row">
+                                <div class="form-row select-region">
                                     <label for="region">* Регион</label>
-                                    <select name="region" required>
+                                    <select name="fg${StaffInputGroupsNumber+1}_regions" required>
                                         <option value="" selected disabled hidden>Выберите регион</option>
                                         {% for region in regions %}
                                             <option value="{{ region }}">
@@ -388,7 +408,7 @@
                             </div>
 
                             <div class="save_checkbox">                                
-                                <input type="checkbox" name="save_checkbox" value="save" checked>
+                                <input type="checkbox" name="save_checkbox" value="save_checkbox_${StaffInputGroupsNumber+1}" checked>
                                 <label for="save_checkbox">Сохранить</label>
                             </div>
     
@@ -403,8 +423,7 @@
                             </button>
                         </div>
             `;
-
-            staffsInput = document.getElementById("staffs_input");
+            
             staffsInput.appendChild(newStaffInputGroup);
         }
 
@@ -412,7 +431,5 @@
 
 
     </script>
-
-
 
 {% endblock %}

@@ -68,6 +68,21 @@ def get_general_region(unique_region: str):
     return result[0] if result is not None else None
 
 
+def get_general_regions() -> list:
+    db_con = sqlite3.connect('reports.db')
+    db_con.row_factory = sqlite3.Row
+    cursor = db_con.cursor()
+
+    cursor.execute(
+        f"""SELECT region FROM General_Regions"""
+    )
+
+    result = cursor.fetchall()
+    db_con.commit()
+
+    return [r['region'] for r in result]
+
+
 def get_general_region_by_id(region_id):
     db_con = sqlite3.connect('reports.db')
     db_con.row_factory = sqlite3.Row
@@ -183,6 +198,32 @@ def check_region(input_region):
     )
 
     return bool(cursor.fetchone())
+
+
+def insert_region(unique: str, general: str):
+    db_con = sqlite3.connect('reports.db')
+    db_con.row_factory = sqlite3.Row
+    cursor = db_con.cursor()
+
+    cursor.execute(
+        """
+        SELECT id 
+        FROM General_Regions 
+        WHERE region = ?
+        """,
+        (general,)
+    )
+    general_id = cursor.fetchone()['id']
+
+    cursor.execute(
+        """
+        INSERT INTO All_Regions (unique_region, general_id) 
+        VALUES (?, ?)
+        """,
+        (unique, general_id)
+    )
+    db_con.commit()
+
 
 
 # def insert_unique_name(unique_name: str, general_name: str):

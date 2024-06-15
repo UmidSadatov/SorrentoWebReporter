@@ -3,6 +3,7 @@ import os
 from werkzeug.utils import secure_filename
 from reporter import *
 from jsoner import *
+from db_manage import *
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
@@ -40,17 +41,24 @@ def auth():
 
 @app.route('/home')
 def home():
-    session['secondary_files_data'] = [
+    session['secondary_file_input_groups'] = [
         {
-            "dist": "Pharm Luxe",
+            "dist": "",
             "name_cells_template": "",
             "region1_cells_template": "",
-            "sales_cells_template": "",
             "region2_cells_template": "",
+            "sales_cells_template": "",            
             "client_cells_template": "",
-            "sheet_index": "0"
+            "sheet_index": "0",
+            "input_error": False
         }
     ]
+    
+    session['secondary_staff_input_groups'] = json_to_var('static/staffs.json')
+    for staff_data in session['secondary_staff_input_groups']:
+        staff_data['saved'] = True
+
+    session['error'] = ""
     return render_template('home.html')
 
 
@@ -117,8 +125,174 @@ def secondary():
         'secondary.html', 
         distributors=distributors, 
         groups=groups,
-        regions=regions
+        regions=regions,
+        error="",
     )
+
+
+@app.route('/secondary_processing', methods=['POST'])
+def secondary_processing():
+    # files
+    distributors = request.form.getlist('distributor')
+    name_templates = request.form.getlist('name_template')
+    region1_templates = request.form.getlist('region1_template')
+    region2_templates = request.form.getlist('region2_template')
+    sales_templates = request.form.getlist('sales_template')
+    client_templates = request.form.getlist('client_template')
+    files = request.files.getlist('file')
+    pages = request.form.getlist('sheet_index')
+
+    # Удаление старых файлов
+    for old_file in os.listdir(app.config['UPLOAD_FOLDER']):
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], old_file)
+        if os.path.isfile(file_path) or os.path.islink(file_path):
+            os.unlink(file_path)  # Удаление файла или ссылки
+
+    # Сохранение новых файлов
+    for file in files:
+        if file.filename != '':
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], file.filename))
+
+    session['secondary_file_input_groups'] = []
+    file_report_dicts = []
+    input_errors_count = 0
+
+    for i in range(0, len(distributors)):
+        session['secondary_file_input_groups'].append(
+            {
+                "dist": distributors[i],
+                "name_cells_template": name_templates[i],
+                "region1_cells_template": region1_templates[i],
+                "region2_cells_template": region2_templates[i] if region2_templates[i] is not None else "",
+                "sales_cells_template": sales_templates[i],            
+                "client_cells_template": client_templates[i] if client_templates[i] is not None else "",
+                "sheet_index": pages[i],
+                "input_error": False
+            }
+        )
+
+        try:
+            new_report_dict = get_report_dict_from_file(
+                filename=f"uploads/{files[i].filename}",
+                dist=str(distributors[i]),
+                name_cells_template=str(name_templates[i]),
+                region1_cells_template=region1_templates[i],
+                region2_cells_template=region2_templates[i] if region2_templates[i] != "" else None,
+                sales_cells_template=sales_templates[i],
+                client_cells_template=client_templates[i] if client_templates[i] != "" else None,
+                sheet_index=int(pages[i])
+            )
+            file_report_dicts.append(new_report_dict)
+        except Exception as error:
+            print(error)
+            session['secondary_file_input_groups'][-1]["input_error"] = True
+            input_errors_count += 1
+
+
+    #staffs
+    staff_names = request.form.getlist('staff')
+    groups = request.form.getlist('group')
+    checkboxes = request.form.getlist('save_checkbox')
+    regions = []
+    session['secondary_staff_input_groups'] = []
+    saved_staffs_data = []
+
+    for i in range(0, len(staff_names)):
+        regions_list = request.form.getlist(f'fg{i+1}_regions')
+        regions.append(regions_list)
+
+        session['secondary_staff_input_groups'].append(
+            {
+                'staff': staff_names[i],
+                'group': groups[i],
+                'regions': regions_list,
+                'saved': f'save_checkbox_{i+1}' in checkboxes
+            }
+        )
+
+        if f'save_checkbox_{i+1}' in checkboxes:
+            saved_staffs_data.append(
+                {
+                    'staff': staff_names[i],
+                    'group': groups[i],
+                    'regions': regions_list,
+                }
+            )
+        
+        var_to_json(saved_staffs_data, "static/staffs.json")
+
+        # print(staff_names[i])
+        # print(groups[i])
+        # print(regions_list)
+        # print(f"saved: {f'save_checkbox_{i+1}' in checkboxes}")
+        # print('\n\n')
+
+    if input_errors_count > 0:
+        session['error'] = "Ошибка ввода"
+        return redirect(url_for('secondary'))
+    
+    total_report_dict = get_total_report_dict(*file_report_dicts)
+    session['not_found_names'] = total_report_dict['not_found_names']
+    session['not_found_regions'] = total_report_dict['not_found_regions']
+
+    general_regions = get_general_regions()
+    
+    return render_template(
+        'secondary_data_normalization.html',
+        general_regions=general_regions
+        )
+
+
+@app.route('/downloadsecondaryreport', methods=['POST'])
+def send_file():
+
+    for i in range(0, len(session['not_found_regions'])):
+        try:
+            unique = session['not_found_regions'][i]
+            general = request.form[f'general_region_select{i}']
+
+            insert_region(unique, general)
+            print('\n' , unique, '  :  ', general)
+
+        except KeyError:
+            pass
+
+
+    # general_region_selects = request.form.getlist('general_region_select')
+
+    # print(session['not_found_regions'])
+    # print(general_region_selects)
+
+    # for i in range(0, len(session['not_found_regions'])):
+    #     if general_region_selects[i] is not None and len(general_region_selects[i]):
+    #         unique = session['not_found_regions'][i]
+    #         general = general_region_selects[i]
+    #         # insert_region(unique, general)
+    #         print(unique, '  :  ', general)
+    
+    return "<h1>Генерация файла</h1>"
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -51,7 +51,6 @@ def get_report_dict_from_file(
     not_found_regions = []
     xl_file = ExcelBook(filename)
     max_row = str(int(xl_file.get_max_row(sheet_index=sheet_index)))
-
     name_cells = expand(name_cells_template.replace("#", max_row))
     region1_cells = expand(region1_cells_template.replace("#", max_row))
     sales_cells = expand(sales_cells_template.replace("#", max_row))
@@ -123,7 +122,10 @@ def get_report_dict_from_file(
                         data[group][name]['Total'] += sales
                         data[group][name][region] += sales
                         if region == 'Неизвестный р.':
-                            not_found_regions.append(f"{region1} {region2}")
+                            not_found_regions.append(region1)
+                            if region2 is not None and len(region2):
+                                not_found_regions.append(region2)
+                                not_found_regions.append(f"{region1} {region2}")
         else:
             if name_in_cell != "0":
                 not_found_names.append(name_in_cell)
@@ -137,14 +139,13 @@ def get_report_dict_from_file(
 
 
 # report_dict = get_report_dict_from_file(
-#     filename="Sorrento-39.xlsx",
-#     dist="Pharm Luxe",
-#     name_cells_template="A(2-#)",
-#     region1_cells_template="I(2-#)",
-#     region2_cells_template="J(2-#)",
-#     sales_cells_template="F(2-#)",
-#     client_cells_template="C(2-#)",
-#     sheet_index=1
+#     filename="uploads/2024.xls",
+#     dist="Meros",
+#     name_cells_template="A(7-#)",
+#     region1_cells_template="C(7-#)",
+#     sales_cells_template="H(7-#)",
+#     client_cells_template="D(7-#)",
+#     sheet_index=0
 # )
 
 

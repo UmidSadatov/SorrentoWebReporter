@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+    
+    <form class="secondary_data_normalization" action="/downloadsecondaryreport" method="post">
+
+        
+        <div class="rows">
+
+            <h3>Регионы:</h3>
+
+            {% for region in session['not_found_regions'] %}
+                <div class="row">
+
+                    <div class="unique_column">
+                        {{ region }}
+                    </div>
+        
+                    <div class="general_column">
+                        <select name="general_region_select{{ loop.index0 }}">
+                            <option value="" selected disabled hidden>Выбрать соответствующий регион</option>
+                            {% for genreg in general_regions %}
+                                <option value="{{ genreg }}">{{ genreg }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                </div>
+            {% endfor %}
+
+        </div>
+
+        <button type="submit">
+            Сохранить и загрузить файл
+        </button>
+
+    </form>
+
+    <!-- {% for region in not_found_regions %}
+        <p>
+            {{ region }}
+            <select name="general_region">
+                <option value="" selected hidden disabled>Выбрать регион</option>
+                {% for genreg in general_regions %}
+                    <option value="{{ genreg }}">{{ genreg }}</option>
+                {% endfor %}
+            </select>
+        </p>
+    {% endfor %} -->
+
+
+
+{% endblock %}
